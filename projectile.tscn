@@ -1,0 +1,22 @@
+[gd_scene load_steps=4 format=3 uid="uid://dxmnguvpk2lp4"]
+
+[ext_resource type="Script" uid="uid://bdw2al1ewayvg" path="res://projectile.gd" id="1_a85iw"]
+[ext_resource type="Texture2D" uid="uid://bkq4q1wmvmuus" path="res://Bullets.png" id="2_qxf0c"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_dgwo2"]
+
+[node name="Area2D" type="Area2D"]
+script = ExtResource("1_a85iw")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(-1.9073486e-06, -0.9999924)
+scale = Vector2(0.2361111, 0.24766356)
+texture = ExtResource("2_qxf0c")
+region_enabled = true
+region_rect = Rect2(272.6306, 120.297424, 72.88208, 107.179474)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -1)
+shape = SubResource("CapsuleShape2D_dgwo2")
+
+[connection signal="body_entered" from="." to="." method="_on_body_entered"]
