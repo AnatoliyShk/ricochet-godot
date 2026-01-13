@@ -11,9 +11,13 @@ config_version=5
 [application]
 
 config/name="Ricochet"
-run/main_scene="uid://eranmuupilel"
+run/main_scene="uid://cqjpgkanek3al"
 config/features=PackedStringArray("4.5", "Forward Plus")
 config/icon="res://icon.svg"
+
+[display]
+
+window/size/mode=2
 
 [input]
 

@@ -1,0 +1,29 @@
+[gd_scene load_steps=3 format=3 uid="uid://cqjpgkanek3al"]
+
+[ext_resource type="PackedScene" uid="uid://eranmuupilel" path="res://Player.tscn" id="1_88gup"]
+[ext_resource type="PackedScene" uid="uid://dxmnguvpk2lp4" path="res://projectile.tscn" id="1_bisa2"]
+
+[node name="Node2D" type="Node2D"]
+
+[node name="Area2D2" parent="." instance=ExtResource("1_bisa2")]
+position = Vector2(787, 462)
+script = null
+
+[node name="Area2D" parent="." instance=ExtResource("1_bisa2")]
+position = Vector2(308, 305)
+script = null
+
+[node name="Player" parent="." instance=ExtResource("1_88gup")]
+position = Vector2(545, 362)
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+layer = -1
+
+[node name="ColorRect" type="ColorRect" parent="CanvasLayer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.35486105, 0.72044885, 0.9724793, 1)

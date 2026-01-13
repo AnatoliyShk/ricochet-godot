@@ -1,20 +1,25 @@
-[gd_scene load_steps=5 format=3 uid="uid://eranmuupilel"]
+[gd_scene load_steps=6 format=3 uid="uid://eranmuupilel"]
 
 [ext_resource type="Script" uid="uid://bvnv2ow2t0vic" path="res://player.gd" id="1_kne1u"]
 [ext_resource type="Texture2D" uid="uid://dcily5ovlympl" path="res://{F204A5F7-09C6-4AF1-AB24-38A3EB3C585C}.png" id="1_kpjcp"]
 [ext_resource type="PackedScene" uid="uid://dxmnguvpk2lp4" path="res://projectile.tscn" id="1_xhfnw"]
+[ext_resource type="Script" uid="uid://d30kxt58rf4rh" path="res://camera_2d.gd" id="4_e80uo"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_0rwas"]
+radius = 29.0
+height = 98.0
 
-[node name="Area2D" type="CharacterBody2D"]
+[node name="Player" type="CharacterBody2D"]
 script = ExtResource("1_kne1u")
+projectile_scene = ExtResource("1_xhfnw")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -1)
 shape = SubResource("CapsuleShape2D_0rwas")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 position = Vector2(0, 1)
-scale = Vector2(0.5725807, 0.38698632)
+scale = Vector2(1.63, 1.1)
 texture = ExtResource("1_kpjcp")
 
 [node name="WeaponPivot" type="Node2D" parent="."]
@@ -23,3 +28,6 @@ texture = ExtResource("1_kpjcp")
 
 [node name="Area2D" parent="." instance=ExtResource("1_xhfnw")]
 position = Vector2(86, -119)
+
+[node name="Camera2D" type="Camera2D" parent="."]
+script = ExtResource("4_e80uo")
