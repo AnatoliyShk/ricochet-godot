@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3 uid="uid://cqjpgkanek3al"]
+[gd_scene load_steps=4 format=3 uid="uid://cqjpgkanek3al"]
 
 [ext_resource type="PackedScene" uid="uid://eranmuupilel" path="res://Player.tscn" id="1_88gup"]
 [ext_resource type="PackedScene" uid="uid://dxmnguvpk2lp4" path="res://projectile.tscn" id="1_bisa2"]
+[ext_resource type="PackedScene" uid="uid://dre2urm3et2yy" path="res://wall_segment.tscn" id="3_4o3f6"]
 
 [node name="Node2D" type="Node2D"]
 
@@ -23,7 +24,18 @@ layer = -1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_top = 11.0
+offset_bottom = 11.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-color = Color(0.35486105, 0.72044885, 0.9724793, 1)
+color = Color(0, 0, 0, 1)
+
+[node name="WallSegment" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(774, 336)
+
+[node name="WallSegment2" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(357, 266)
+
+[node name="WallSegment3" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(644, 158)

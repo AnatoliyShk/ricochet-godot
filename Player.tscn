@@ -1,9 +1,10 @@
-[gd_scene load_steps=6 format=3 uid="uid://eranmuupilel"]
+[gd_scene load_steps=7 format=3 uid="uid://eranmuupilel"]
 
 [ext_resource type="Script" uid="uid://bvnv2ow2t0vic" path="res://player.gd" id="1_kne1u"]
 [ext_resource type="Texture2D" uid="uid://dcily5ovlympl" path="res://{F204A5F7-09C6-4AF1-AB24-38A3EB3C585C}.png" id="1_kpjcp"]
 [ext_resource type="PackedScene" uid="uid://dxmnguvpk2lp4" path="res://projectile.tscn" id="1_xhfnw"]
 [ext_resource type="Script" uid="uid://d30kxt58rf4rh" path="res://camera_2d.gd" id="4_e80uo"]
+[ext_resource type="Script" uid="uid://dijc8ccl5lfwy" path="res://ricochet_laser_sight.gd" id="5_cxr5p"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_0rwas"]
 radius = 29.0
@@ -26,8 +27,8 @@ texture = ExtResource("1_kpjcp")
 
 [node name="Muzzle" type="Marker2D" parent="WeaponPivot"]
 
-[node name="Area2D" parent="." instance=ExtResource("1_xhfnw")]
-position = Vector2(86, -119)
-
 [node name="Camera2D" type="Camera2D" parent="."]
 script = ExtResource("4_e80uo")
+
+[node name="LaserSight" type="Node2D" parent="."]
+script = ExtResource("5_cxr5p")

@@ -2,11 +2,20 @@ extends CharacterBody2D
 
 @export var move_speed: float = 300.0
 @export var projectile_scene: PackedScene
+@export var laser_sight_enabled: bool = true  # Toggle laser sight
 
 @onready var camera = $Camera2D  # Reference to camera
+@onready var laser_sight = $LaserSight  # Reference to laser sight
 
 var can_shoot: bool = true
 var shoot_cooldown: float = 0.2  # Time between shots in seconds
+
+func _ready():
+	# Show/hide laser sight based on setting
+	if laser_sight and laser_sight_enabled:
+		laser_sight.visible = true
+	elif laser_sight:
+		laser_sight.visible = false
 
 func _physics_process(delta):
 	# Movement
@@ -26,6 +35,14 @@ func _physics_process(delta):
 	move_and_slide()
 
 func _input(event):
+	# Toggle fullscreen with F11
+	if event is InputEventKey:
+		if event.keycode == KEY_F11 and event.pressed:
+			if DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_FULLSCREEN:
+				DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
+			else:
+				DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
+	
 	# Shoot on left mouse button click (not hold)
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_LEFT and event.pressed and can_shoot:
