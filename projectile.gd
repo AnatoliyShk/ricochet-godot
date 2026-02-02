@@ -4,21 +4,28 @@ extends Area2D
 @export var damage: int = 1
 @export var lifetime: float = 3.0
 @export var bullet_color: Color = Color.YELLOW
+@export var bullet_color_after_ricochet: Color = Color.GREEN
 @export var bullet_length: float = 20.0
 @export var bullet_width: float = 6.0
 @export var trail_enabled: bool = true
 @export var trail_length: float = 30.0
 @export var trail_width: float = 3.0
 @export var trail_color: Color = Color.YELLOW
+@export var trail_color_after_ricochet: Color = Color.GREEN
 @export var ricochet_enabled: bool = true
 @export var max_ricochets: int = 3
 @export var ricochet_speed_loss: float = 0.8
 @export var show_impact_effects: bool = true
+@export var play_impact_sound: bool = true
 
 var direction: Vector2 = Vector2.RIGHT
 var shooter = null
 var has_left_shooter: bool = false
 var ricochet_count: int = 0
+var has_ricocheted: bool = false  # Track if bullet bounced at least once
+var trail_line: Line2D = null  # Reference to trail for color change
+
+@onready var impact_sound = $ImpactSound if has_node("ImpactSound") else null
 
 func _ready():
 	# IMPORTANT: Make bullet only collide with bodies, not areas
@@ -32,12 +39,12 @@ func _ready():
 	
 	# Add trail effect
 	if trail_enabled:
-		var trail = Line2D.new()
-		trail.width = trail_width
-		trail.default_color = trail_color
-		trail.add_point(Vector2.ZERO)
-		trail.add_point(Vector2(-trail_length, 0))
-		add_child(trail)
+		trail_line = Line2D.new()
+		trail_line.width = trail_width
+		trail_line.default_color = trail_color
+		trail_line.add_point(Vector2.ZERO)
+		trail_line.add_point(Vector2(-trail_length, 0))
+		add_child(trail_line)
 	
 	print("Bullet spawned - Direction: ", direction, " Speed: ", speed)
 	
@@ -48,7 +55,10 @@ func _ready():
 		queue_free()
 
 func _draw():
-	draw_rect(Rect2(-bullet_length/2, -bullet_width/2, bullet_length, bullet_width), bullet_color)
+	# Use green color after ricochet
+	var current_color = bullet_color_after_ricochet if has_ricocheted else bullet_color
+	
+	draw_rect(Rect2(-bullet_length/2, -bullet_width/2, bullet_length, bullet_width), current_color)
 	draw_rect(Rect2(-bullet_length/2, -bullet_width/4, bullet_length, bullet_width/2), Color.WHITE)
 	var tip_points = PackedVector2Array([
 		Vector2(bullet_length/2, 0),
@@ -104,6 +114,22 @@ func _draw():
 	
 	get_tree().root.add_child(impact)
 
+func play_impact_sound_effect():
+	if not play_impact_sound or not impact_sound:
+		return
+	
+	# Detach sound from bullet so it keeps playing after bullet is destroyed
+	if impact_sound.get_parent():
+		impact_sound.get_parent().remove_child(impact_sound)
+	
+	# Add to scene root and play
+	get_tree().root.add_child(impact_sound)
+	impact_sound.global_position = global_position
+	impact_sound.play()
+	
+	# Auto-delete sound after it finishes
+	impact_sound.finished.connect(func(): impact_sound.queue_free())
+
 func _on_body_entered(body):
 	print("Bullet collision with: ", body.name, " Type: ", body.get_class())
 	print("  Current direction: ", direction)
@@ -121,6 +147,9 @@ func _on_body_entered(body):
 			# Notify wall about impact
 			if body.has_method("on_bullet_impact"):
 				body.on_bullet_impact(global_position)
+			
+			# Play impact sound
+			play_impact_sound_effect()
 			
 			var space_state = get_world_2d().direct_space_state
 			var query = PhysicsRayQueryParameters2D.create(
@@ -159,15 +188,35 @@ func _on_body_entered(body):
 			speed *= ricochet_speed_loss
 			ricochet_count += 1
 			
+			# Mark as ricocheted and change color
+			if not has_ricocheted:
+				has_ricocheted = true
+				# Change trail color
+				if trail_line:
+					trail_line.default_color = trail_color_after_ricochet
+				# Redraw bullet with new color
+				queue_redraw()
+			
 			print("  -> RICOCHETED! New direction: ", direction, " Count: ", ricochet_count)
 			return
 	
 	if body.is_in_group("enemies"):
 		print("  -> Hit enemy!")
-		spawn_impact_effect(global_position, Color.RED)
-		if body.has_method("take_damage"):
-			body.take_damage(damage)
+		
+		# Check if bullet has ricocheted at least once
+		if has_ricocheted:
+			print("  -> Bullet ricocheted! Dealing damage")
+			spawn_impact_effect(global_position, Color.RED)
+			play_impact_sound_effect()
+			if body.has_method("take_damage"):
+				body.take_damage(damage)
+		else:
+			print("  -> Bullet hasn't ricocheted! No damage")
+			spawn_impact_effect(global_position, Color.ORANGE)
+			play_impact_sound_effect()
 	
+	# Play sound and show effect when destroyed
+	play_impact_sound_effect()
 	spawn_impact_effect(global_position, Color.ORANGE)
 	
 	print("  -> Destroying bullet")

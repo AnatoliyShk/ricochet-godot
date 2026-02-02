@@ -1,18 +1,11 @@
-[gd_scene load_steps=4 format=3 uid="uid://cqjpgkanek3al"]
+[gd_scene load_steps=5 format=3 uid="uid://cqjpgkanek3al"]
 
 [ext_resource type="PackedScene" uid="uid://eranmuupilel" path="res://Player.tscn" id="1_88gup"]
-[ext_resource type="PackedScene" uid="uid://dxmnguvpk2lp4" path="res://projectile.tscn" id="1_bisa2"]
 [ext_resource type="PackedScene" uid="uid://dre2urm3et2yy" path="res://wall_segment.tscn" id="3_4o3f6"]
+[ext_resource type="PackedScene" uid="uid://73olhx6mgron" path="res://rotating_wall.tscn" id="3_v5vuv"]
+[ext_resource type="PackedScene" uid="uid://byf8qsanusgxe" path="res://enemy.tscn" id="4_v5vuv"]
 
 [node name="Node2D" type="Node2D"]
-
-[node name="Area2D2" parent="." instance=ExtResource("1_bisa2")]
-position = Vector2(787, 462)
-script = null
-
-[node name="Area2D" parent="." instance=ExtResource("1_bisa2")]
-position = Vector2(308, 305)
-script = null
 
 [node name="Player" parent="." instance=ExtResource("1_88gup")]
 position = Vector2(545, 362)
@@ -38,4 +31,28 @@ position = Vector2(774, 336)
 position = Vector2(357, 266)
 
 [node name="WallSegment3" parent="." instance=ExtResource("3_4o3f6")]
-position = Vector2(644, 158)
+position = Vector2(972, 107)
+
+[node name="WallSegment4" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(166, 110)
+
+[node name="RotatingWall" parent="." instance=ExtResource("3_v5vuv")]
+position = Vector2(586, 144)
+
+[node name="RotatingWall2" parent="." instance=ExtResource("3_v5vuv")]
+position = Vector2(1010, 402)
+
+[node name="WallSegment5" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(166, 207)
+
+[node name="WallSegment6" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(166, 304)
+
+[node name="WallSegment7" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(166, 401)
+
+[node name="WallSegment8" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(166, 498)
+
+[node name="Enemy" parent="." instance=ExtResource("4_v5vuv")]
+position = Vector2(1245, -19)

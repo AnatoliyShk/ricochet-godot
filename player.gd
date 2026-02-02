@@ -6,6 +6,7 @@ extends CharacterBody2D
 
 @onready var camera = $Camera2D  # Reference to camera
 @onready var laser_sight = $LaserSight  # Reference to laser sight
+@onready var shoot_sound = $ShootSound if has_node("ShootSound") else null
 
 var can_shoot: bool = true
 var shoot_cooldown: float = 0.2  # Time between shots in seconds
@@ -56,6 +57,10 @@ func shoot():
 	if not can_shoot:
 		return
 	
+	# Play shooting sound
+	if shoot_sound:
+		shoot_sound.play()
+	
 	# Prevent rapid firing
 	can_shoot = false
 	await get_tree().create_timer(shoot_cooldown).timeout
@@ -78,6 +83,8 @@ func shoot():
 	get_tree().root.add_child(projectile)
 	
 	print("Bullet fired toward: ", mouse_pos)
+	print("Projectile instance valid: ", is_instance_valid(projectile))
+	print("Projectile has script: ", projectile.get_script() != null)
 	
 	# Camera shake on shoot (optional)
 	if camera and camera.has_method("apply_shake"):
