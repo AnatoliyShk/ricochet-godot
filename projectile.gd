@@ -209,7 +209,7 @@ func _on_body_entered(body):
 			spawn_impact_effect(global_position, Color.RED)
 			play_impact_sound_effect()
 			if body.has_method("take_damage"):
-				body.take_damage(damage)
+				body.take_damage(damage, global_position)  # Pass bullet position for knockback
 		else:
 			print("  -> Bullet hasn't ricocheted! No damage")
 			spawn_impact_effect(global_position, Color.ORANGE)

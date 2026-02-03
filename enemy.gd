@@ -2,14 +2,17 @@ extends CharacterBody2D
 
 @export var max_health: int = 3
 @export var move_speed: float = 150.0
-@export var shoot_interval: float = 2.0  # Seconds between shots
-@export var projectile_scene: PackedScene
+@export var melee_damage: int = 1
+@export var attack_range: float = 150.0  # Increased for testing
+@export var attack_cooldown: float = 1.0  # Seconds between attacks
 @export var detection_range: float = 800.0
-@export var shoot_range: float = 600.0
+@export var knockback_strength: float = 400.0  # How hard to push back when hit
 
 var current_health: int
-var shoot_timer: float = 0.0
+var attack_timer: float = 0.0
 var player: Node2D = null
+var is_attacking: bool = false
+var knockback_velocity: Vector2 = Vector2.ZERO
 
 @onready var health_bar = $HealthBar if has_node("HealthBar") else null
 @onready var sprite = $Sprite2D if has_node("Sprite2D") else null
@@ -29,50 +32,80 @@ func _physics_process(delta):
 	
 	var distance_to_player = global_position.distance_to(player.global_position)
 	
-	# Move towards player if in detection range
-	if distance_to_player < detection_range and distance_to_player > 200:
-		var direction = (player.global_position - global_position).normalized()
-		velocity = direction * move_speed
+	# Debug every frame
+	if distance_to_player < detection_range:
+		print("Distance to player: ", distance_to_player, " Attack range: ", attack_range)
+	
+	# Apply knockback
+	if knockback_velocity.length() > 10:
+		velocity = knockback_velocity
+		knockback_velocity = knockback_velocity.lerp(Vector2.ZERO, 8 * delta)  # Decay knockback
 		move_and_slide()
-		
-		# Flip sprite based on direction
-		if sprite and direction.x != 0:
-			sprite.flip_h = direction.x < 0
+		return  # Skip normal movement while being knocked back
+	
+	# Move toward player or attack
+	if distance_to_player < detection_range:
+		if distance_to_player > attack_range:
+			# Move closer to player
+			var direction = (player.global_position - global_position).normalized()
+			velocity = direction * move_speed
+			move_and_slide()
+			
+			print("Moving toward player")
+			
+			# Flip sprite based on direction
+			if sprite and direction.x != 0:
+				sprite.flip_h = direction.x < 0
+		else:
+			# In attack range - stop and attack
+			velocity = Vector2.ZERO
+			print("IN ATTACK RANGE! Timer: ", attack_timer)
+			
+			# Attack player
+			attack_timer -= delta
+			if attack_timer <= 0:
+				print("ATTACKING NOW!")
+				attack_player()
+				attack_timer = attack_cooldown
 	else:
 		velocity = Vector2.ZERO
-	
-	# Shoot at player
-	shoot_timer -= delta
-	if shoot_timer <= 0 and distance_to_player < shoot_range:
-		shoot_at_player()
-		shoot_timer = shoot_interval
+		print("Player out of detection range")
 
-func shoot_at_player():
-	if not projectile_scene or not player:
+func attack_player():
+	if not player:
+		print("Enemy attack failed - no player reference")
 		return
 	
-	print("Enemy shooting at player!")
+	if not player.has_method("take_damage"):
+		print("Enemy attack failed - player doesn't have take_damage method!")
+		print("Player type: ", player.get_class())
+		print("Player script: ", player.get_script())
+		return
 	
-	# Create projectile
-	var projectile = projectile_scene.instantiate()
+	print("Enemy attacking player at distance: ", global_position.distance_to(player.global_position))
+	is_attacking = true
 	
-	# Set direction towards player
-	var direction = (player.global_position - global_position).normalized()
-	projectile.direction = direction
-	projectile.rotation = direction.angle()
-	projectile.global_position = global_position
-	projectile.shooter = self
+	# Flash orange when attacking
+	if sprite:
+		sprite.modulate = Color.ORANGE
+		await get_tree().create_timer(0.1).timeout
+		if is_instance_valid(sprite):
+			sprite.modulate = Color.WHITE
 	
-	# Make enemy bullets different color (red)
-	projectile.bullet_color = Color.RED
-	projectile.trail_color = Color.RED
-	
-	# Add to scene
-	get_tree().root.add_child(projectile)
+	# Deal damage to player
+	print("Calling player.take_damage(", melee_damage, ")")
+	player.take_damage(melee_damage, global_position)  # Pass enemy position for knockback
+	is_attacking = false
 
-func take_damage(amount: int):
+func take_damage(amount: int, from_position: Vector2 = Vector2.ZERO):
 	current_health -= amount
 	print("Enemy took ", amount, " damage! Health: ", current_health, "/", max_health)
+	
+	# Apply knockback away from bullet
+	if from_position != Vector2.ZERO:
+		var knockback_dir = (global_position - from_position).normalized()
+		knockback_velocity = knockback_dir * knockback_strength
+		print("Enemy knockback applied: ", knockback_velocity)
 	
 	# Flash effect
 	flash_damage()
@@ -123,3 +156,8 @@ func _draw():
 	get_tree().root.add_child(death_effect)
 	
 	queue_free()
+
+func _draw():
+	# Debug - show attack range
+	if player and global_position.distance_to(player.global_position) < detection_range:
+		draw_circle(Vector2.ZERO, attack_range, Color(1, 0, 0, 0.2))

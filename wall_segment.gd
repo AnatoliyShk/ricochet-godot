@@ -1,4 +1,3 @@
-
 extends StaticBody2D
 
 @export var shake_intensity: float = 5.0  # How much the wall shakes
@@ -9,12 +8,43 @@ var original_position: Vector2
 var is_shaking: bool = false
 var shake_timer: float = 0.0
 
+@onready var collision_shape = $CollisionShape2D if has_node("CollisionShape2D") else null
+
 func _ready():
 	# Store the GLOBAL position, not local
 	original_position = global_position
 	# Make sure wall is in the "walls" group for ricochets
 	add_to_group("walls")
 	print("Wall initialized at: ", original_position)
+	
+	# Auto-create NavigationObstacle2D for pathfinding
+	setup_navigation_obstacle()
+
+func setup_navigation_obstacle():
+	# Check if we already have a navigation obstacle
+	if has_node("NavigationObstacle2D"):
+		return
+	
+	# Create navigation obstacle automatically
+	var obstacle = NavigationObstacle2D.new()
+	obstacle.name = "NavigationObstacle2D"
+	obstacle.avoidance_enabled = true
+	
+	# Try to match obstacle size to collision shape
+	if collision_shape and collision_shape.shape:
+		var shape = collision_shape.shape
+		if shape is RectangleShape2D:
+			obstacle.radius = shape.size.length() / 2.0
+			print("Navigation obstacle created - Radius: ", obstacle.radius)
+		elif shape is CircleShape2D:
+			obstacle.radius = shape.radius
+			print("Navigation obstacle created - Radius: ", obstacle.radius)
+		else:
+			obstacle.radius = 32  # Default
+	else:
+		obstacle.radius = 32  # Default
+	
+	add_child(obstacle)
 
 func _process(delta):
 	if is_shaking:

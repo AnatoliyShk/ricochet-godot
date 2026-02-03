@@ -1,19 +1,18 @@
-[gd_scene load_steps=8 format=3 uid="uid://eranmuupilel"]
+[gd_scene load_steps=7 format=3 uid="uid://eranmuupilel"]
 
 [ext_resource type="Script" uid="uid://bvnv2ow2t0vic" path="res://player.gd" id="1_kne1u"]
-[ext_resource type="Texture2D" uid="uid://dcily5ovlympl" path="res://{F204A5F7-09C6-4AF1-AB24-38A3EB3C585C}.png" id="1_kpjcp"]
-[ext_resource type="PackedScene" uid="uid://dxmnguvpk2lp4" path="res://projectile.tscn" id="1_xhfnw"]
+[ext_resource type="Texture2D" uid="uid://c8yidisng55kv" path="res://{43F98915-C1A7-4AF4-9E5B-1A99DFB23105}.png" id="3_tdg3f"]
 [ext_resource type="Script" uid="uid://d30kxt58rf4rh" path="res://camera_2d.gd" id="4_e80uo"]
 [ext_resource type="Script" uid="uid://dijc8ccl5lfwy" path="res://ricochet_laser_sight.gd" id="5_cxr5p"]
 [ext_resource type="AudioStream" uid="uid://biwyvgdecdju7" path="res://8bit_gunloop_explosion.wav" id="6_tdg3f"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_0rwas"]
-radius = 29.0
-height = 98.0
+radius = 62.0
+height = 124.0
 
 [node name="Player" type="CharacterBody2D" groups=["player"]]
 script = ExtResource("1_kne1u")
-projectile_scene = ExtResource("1_xhfnw")
+knockback_strength = 3000.0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 position = Vector2(0, -1)
@@ -22,7 +21,7 @@ shape = SubResource("CapsuleShape2D_0rwas")
 [node name="Sprite2D" type="Sprite2D" parent="."]
 position = Vector2(0, 1)
 scale = Vector2(1.63, 1.1)
-texture = ExtResource("1_kpjcp")
+texture = ExtResource("3_tdg3f")
 
 [node name="WeaponPivot" type="Node2D" parent="."]
 
@@ -39,3 +38,9 @@ arrow_speed = 200.0
 
 [node name="ShootSound" type="AudioStreamPlayer2D" parent="."]
 stream = ExtResource("6_tdg3f")
+
+[node name="HealthBar" type="ProgressBar" parent="."]
+offset_left = -120.0
+offset_top = -129.0
+offset_right = 130.0
+offset_bottom = -102.0
