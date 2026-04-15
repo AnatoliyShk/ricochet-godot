@@ -1,9 +1,26 @@
-[gd_scene load_steps=6 format=3 uid="uid://cqjpgkanek3al"]
+[gd_scene load_steps=11 format=3 uid="uid://cqjpgkanek3al"]
 
 [ext_resource type="PackedScene" uid="uid://eranmuupilel" path="res://Player.tscn" id="1_88gup"]
+[ext_resource type="Shader" uid="uid://yxixume4y25u" path="res://crt_effect.gdshader" id="1_ka7wq"]
 [ext_resource type="PackedScene" uid="uid://dre2urm3et2yy" path="res://wall_segment.tscn" id="3_4o3f6"]
 [ext_resource type="PackedScene" uid="uid://73olhx6mgron" path="res://rotating_wall.tscn" id="3_v5vuv"]
+[ext_resource type="Shader" uid="uid://bk3kkdhfu3km" path="res://bloom.gdshader" id="3_x5k2b"]
 [ext_resource type="PackedScene" uid="uid://byf8qsanusgxe" path="res://enemy.tscn" id="4_v5vuv"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_8cv3p"]
+shader = ExtResource("3_x5k2b")
+shader_parameter/bloom_intensity = 0.8
+shader_parameter/bloom_threshold = 0.6
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_x5k2b"]
+shader = ExtResource("1_ka7wq")
+shader_parameter/curvature = 2.0
+shader_parameter/scanline_strength = 0.3
+shader_parameter/vignette_strength = 0.5
+shader_parameter/scanline_count = 400.0
+shader_parameter/screen_tint = Color(1, 0.95, 0.9, 1)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_ka7wq"]
 
 [sub_resource type="NavigationPolygon" id="NavigationPolygon_v5vuv"]
 vertices = PackedVector2Array(-76.07031, 215.32031, -78.90625, -148.72656, 1075.3125, -119.24219, 500.1328, 57.539063, 494.1172, 524.96094, 252.22656, 524.03125, 259.22656, 226.32813, 1088.6875, 297.4375, 834.5703, 308.5703, 830.6172, 212.59375, 626.21094, 199.61719, 629.21094, 63.460938)
@@ -11,6 +28,33 @@ polygons = Array[PackedInt32Array]([PackedInt32Array(0, 1, 2, 3), PackedInt32Arr
 outlines = Array[PackedVector2Array]([PackedVector2Array(1099, 307, 825, 319, 821, 222, 616, 209, 619, 73, 510, 68, 504, 535, 242, 534, 249, 236, -86, 225, -89, -159, 1085, -129)])
 
 [node name="Node2D" type="Node2D"]
+
+[node name="BloomLayer" type="CanvasLayer" parent="."]
+layer = 9
+
+[node name="ColorRect" type="ColorRect" parent="BloomLayer"]
+material = SubResource("ShaderMaterial_8cv3p")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="CanvasLayer2" type="CanvasLayer" parent="."]
+layer = 10
+
+[node name="CRTEffect" type="ColorRect" parent="CanvasLayer2"]
+material = SubResource("ShaderMaterial_x5k2b")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="BackBufferCopy" type="BackBufferCopy" parent="CanvasLayer2"]
+copy_mode = 2
 
 [node name="Player" parent="." instance=ExtResource("1_88gup")]
 position = Vector2(545, 362)
@@ -20,6 +64,7 @@ move_speed = 500.0
 layer = -1
 
 [node name="ColorRect" type="ColorRect" parent="CanvasLayer"]
+material = SubResource("ShaderMaterial_ka7wq")
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0

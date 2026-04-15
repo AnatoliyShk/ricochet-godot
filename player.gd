@@ -29,8 +29,36 @@ func _ready():
 	# Initialize health
 	current_health = max_health
 	add_to_group("player")
+	
+	# Style the health bar
+	style_health_bar()
+	
 	update_health_bar()
 	print("Player HP: ", current_health, "/", max_health)
+
+func style_health_bar():
+	if not health_bar or not health_bar is ProgressBar:
+		return
+	
+	# Create red fill style
+	var fill_style = StyleBoxFlat.new()
+	fill_style.bg_color = Color.RED  # Bright red
+	fill_style.corner_radius_top_left = 2
+	fill_style.corner_radius_top_right = 2
+	fill_style.corner_radius_bottom_left = 2
+	fill_style.corner_radius_bottom_right = 2
+	
+	# Create dark background style
+	var bg_style = StyleBoxFlat.new()
+	bg_style.bg_color = Color(0.2, 0.0, 0.0, 0.8)  # Dark red background
+	bg_style.corner_radius_top_left = 2
+	bg_style.corner_radius_top_right = 2
+	bg_style.corner_radius_bottom_left = 2
+	bg_style.corner_radius_bottom_right = 2
+	
+	# Apply styles
+	health_bar.add_theme_stylebox_override("fill", fill_style)
+	health_bar.add_theme_stylebox_override("background", bg_style)
 
 func _physics_process(delta):
 	# Movement
@@ -134,7 +162,7 @@ func take_damage(amount: int, from_position: Vector2 = Vector2.ZERO):
 	# Update health bar
 	update_health_bar()
 	
-	# Flash effectddd
+	# Flash effect
 	flash_damage()
 	
 	# Become invincible briefly
@@ -152,6 +180,18 @@ func update_health_bar():
 	if health_bar and health_bar is ProgressBar:
 		health_bar.max_value = max_health
 		health_bar.value = current_health
+	
+	# Update CRT shader HP display
+	update_crt_hp_display()
+
+func update_crt_hp_display():
+	# Find the CRT overlay and update shader
+	var crt_overlay = get_tree().get_first_node_in_group("crt_overlay")
+	if crt_overlay and crt_overlay is CanvasLayer:
+		var color_rect = crt_overlay.get_node_or_null("ColorRect")
+		if color_rect and color_rect.material and color_rect.material is ShaderMaterial:
+			color_rect.material.set_shader_parameter("player_hp", current_health)
+			color_rect.material.set_shader_parameter("player_max_hp", max_health)
 
 func flash_damage():
 	if sprite:
@@ -171,3 +211,7 @@ func _process(_delta):
 		sprite.modulate.a = 0.5 if int(Time.get_ticks_msec() / 100) % 2 == 0 else 1.0
 	elif sprite:
 		sprite.modulate.a = 1.0
+	
+	# Shooting with direct input check (backup method)
+	if Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT) and can_shoot:
+		shoot()
