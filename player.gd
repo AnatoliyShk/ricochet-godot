@@ -1,6 +1,6 @@
 extends CharacterBody2D
 
-@export var move_speed: float = 300.0
+@export var move_speed: float = 375.0
 @export var projectile_scene: PackedScene
 @export var laser_sight_enabled: bool = true
 @export var max_health: int = 5
