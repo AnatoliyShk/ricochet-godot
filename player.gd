@@ -6,17 +6,20 @@ extends CharacterBody2D
 @export var max_health: int = 5
 @export var invincibility_duration: float = 1.0  # Seconds of invincibility after hit
 @export var knockback_strength: float = 200.0  # Reduced from 300
+@export var max_ammo: int = 5
+@export var reload_duration: float = 3.0
 
 @onready var camera = $Camera2D
 @onready var laser_sight = $LaserSight
 @onready var shoot_sound = $ShootSound if has_node("ShootSound") else null
 @onready var sprite = $Sprite2D if has_node("Sprite2D") else null
-@onready var health_bar = $HealthBar if has_node("HealthBar") else null
 
 var can_shoot: bool = true
 var shoot_cooldown: float = 0.2
 var current_health: int
+var current_ammo: int
 var is_invincible: bool = false
+var is_reloading: bool = false
 var knockback_velocity: Vector2 = Vector2.ZERO
 
 func _ready():
@@ -26,39 +29,14 @@ func _ready():
 	elif laser_sight:
 		laser_sight.visible = false
 	
-	# Initialize health
+	# Initialize health and ammo
 	current_health = max_health
+	current_ammo = max_ammo
 	add_to_group("player")
-	
-	# Style the health bar
-	style_health_bar()
-	
-	update_health_bar()
-	print("Player HP: ", current_health, "/", max_health)
+	# Defer so UILayer is ready before first update
+	call_deferred("update_health_bar")
+	call_deferred("update_ammo_bar")
 
-func style_health_bar():
-	if not health_bar or not health_bar is ProgressBar:
-		return
-	
-	# Create red fill style
-	var fill_style = StyleBoxFlat.new()
-	fill_style.bg_color = Color.RED  # Bright red
-	fill_style.corner_radius_top_left = 2
-	fill_style.corner_radius_top_right = 2
-	fill_style.corner_radius_bottom_left = 2
-	fill_style.corner_radius_bottom_right = 2
-	
-	# Create dark background style
-	var bg_style = StyleBoxFlat.new()
-	bg_style.bg_color = Color(0.2, 0.0, 0.0, 0.8)  # Dark red background
-	bg_style.corner_radius_top_left = 2
-	bg_style.corner_radius_top_right = 2
-	bg_style.corner_radius_bottom_left = 2
-	bg_style.corner_radius_bottom_right = 2
-	
-	# Apply styles
-	health_bar.add_theme_stylebox_override("fill", fill_style)
-	health_bar.add_theme_stylebox_override("background", bg_style)
 
 func _physics_process(delta):
 	# Movement
@@ -87,101 +65,95 @@ func _physics_process(delta):
 	move_and_slide()
 
 func _input(event):
-	# Toggle fullscreen with F11
-	if event is InputEventKey:
-		if event.keycode == KEY_F11 and event.pressed:
-			if DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_FULLSCREEN:
-				DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
-			else:
-				DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
-	
-	# Shoot on left mouse button click (not hold)
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_LEFT and event.pressed and can_shoot:
 			shoot()
 
 func shoot():
 	if not projectile_scene:
-		print("ERROR: Projectile scene not assigned!")
 		return
-	
-	if not can_shoot:
+	if not can_shoot or is_reloading or current_ammo <= 0:
 		return
-	
-	# Play shooting sound
+
+	current_ammo -= 1
+	update_ammo_bar()
+
 	if shoot_sound:
-		# Optional: Randomize pitch for variety
 		shoot_sound.pitch_scale = randf_range(0.9, 1.1)
 		shoot_sound.play()
-	
-	# Prevent rapid firing
+
 	can_shoot = false
 	await get_tree().create_timer(shoot_cooldown).timeout
 	can_shoot = true
-	
-	# Create projectile
+
 	var projectile = projectile_scene.instantiate()
-	
-	# Calculate direction from player to mouse cursor
 	var mouse_pos = get_global_mouse_position()
 	var direction = (mouse_pos - global_position).normalized()
-	
-	# Set projectile properties
 	projectile.direction = direction
 	projectile.rotation = direction.angle()
 	projectile.global_position = global_position
-	projectile.shooter = self  # Tell bullet who shot it
-	
-	# Add to scene root (not parent, to avoid camera issues)
+	projectile.shooter = self
 	get_tree().root.add_child(projectile)
-	
-	print("Bullet fired toward: ", mouse_pos)
-	print("Projectile instance valid: ", is_instance_valid(projectile))
-	print("Projectile has script: ", projectile.get_script() != null)
-	
-	# Camera shake on shoot (optional)
+
 	if camera and camera.has_method("apply_shake"):
 		camera.apply_shake(3.0)
 
-func take_damage(amount: int, from_position: Vector2 = Vector2.ZERO):
-	print("TAKE_DAMAGE CALLED! Amount: ", amount, " Current HP: ", current_health)
-	
-	if is_invincible:
-		print("  -> Player is invincible, ignoring damage")
+	if current_ammo <= 0:
+		reload()
+
+
+func reload():
+	if is_reloading:
 		return
-	
+	is_reloading = true
+	var tween = create_tween()
+	tween.tween_method(_update_reload_progress, 0.0, 1.0, reload_duration)
+	await tween.finished
+	current_ammo = max_ammo
+	is_reloading = false
+	update_ammo_bar()
+
+
+func _update_reload_progress(progress: float):
+	var hud = get_tree().get_first_node_in_group("hud")
+	if hud and hud.has_method("set_reload_progress"):
+		hud.set_reload_progress(progress)
+
+
+func update_ammo_bar():
+	var hud = get_tree().get_first_node_in_group("hud")
+	if hud and hud.has_method("set_ammo"):
+		hud.set_ammo(current_ammo, max_ammo)
+
+func take_damage(amount: int, from_position: Vector2 = Vector2.ZERO):
+	if is_invincible:
+		return
+
 	current_health -= amount
-	print("  -> Player took damage! New HP: ", current_health, "/", max_health)
-	
-	# Apply knockback away from attacker
+
 	if from_position != Vector2.ZERO:
 		var knockback_dir = (global_position - from_position).normalized()
 		knockback_velocity = knockback_dir * knockback_strength
-		print("  -> Knockback applied: ", knockback_velocity)
-	
-	# Update health bar
+
 	update_health_bar()
-	
-	# Flash effect
+
+	var dmg_fx = get_tree().get_first_node_in_group("damage_effect")
+	if dmg_fx and dmg_fx.has_method("trigger"):
+		dmg_fx.trigger()
+
 	flash_damage()
-	
-	# Become invincible briefly
+
 	is_invincible = true
-	print("  -> Player is now invincible for ", invincibility_duration, " seconds")
 	await get_tree().create_timer(invincibility_duration).timeout
 	is_invincible = false
-	print("  -> Player invincibility ended")
-	
-	# Check if dead
+
 	if current_health <= 0:
 		die()
 
 func update_health_bar():
-	if health_bar and health_bar is ProgressBar:
-		health_bar.max_value = max_health
-		health_bar.value = current_health
-	
-	# Update CRT shader HP display
+	var hud = get_tree().get_first_node_in_group("hud")
+	if hud and hud.has_method("set_health"):
+		hud.set_health(current_health, max_health)
 	update_crt_hp_display()
 
 func update_crt_hp_display():
@@ -201,8 +173,6 @@ func flash_damage():
 			sprite.modulate = Color.WHITE
 
 func die():
-	print("Player died!")
-	# You can add game over screen, restart, etc.
 	get_tree().reload_current_scene()
 
 func _process(_delta):

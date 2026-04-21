@@ -31,11 +31,7 @@ func _physics_process(delta):
 		return
 	
 	var distance_to_player = global_position.distance_to(player.global_position)
-	
-	# Debug every frame
-	if distance_to_player < detection_range:
-		print("Distance to player: ", distance_to_player, " Attack range: ", attack_range)
-	
+
 	# Apply knockback
 	if knockback_velocity.length() > 10:
 		velocity = knockback_velocity
@@ -50,64 +46,41 @@ func _physics_process(delta):
 			var direction = (player.global_position - global_position).normalized()
 			velocity = direction * move_speed
 			move_and_slide()
-			
-			print("Moving toward player")
-			
+
 			# Flip sprite based on direction
 			if sprite and direction.x != 0:
 				sprite.flip_h = direction.x < 0
 		else:
-			# In attack range - stop and attack
 			velocity = Vector2.ZERO
-			print("IN ATTACK RANGE! Timer: ", attack_timer)
-			
-			# Attack player
 			attack_timer -= delta
 			if attack_timer <= 0:
-				print("ATTACKING NOW!")
 				attack_player()
 				attack_timer = attack_cooldown
 	else:
 		velocity = Vector2.ZERO
-		print("Player out of detection range")
 
 func attack_player():
-	if not player:
-		print("Enemy attack failed - no player reference")
+	if not player or not player.has_method("take_damage"):
 		return
-	
-	if not player.has_method("take_damage"):
-		print("Enemy attack failed - player doesn't have take_damage method!")
-		print("Player type: ", player.get_class())
-		print("Player script: ", player.get_script())
-		return
-	
-	print("Enemy attacking player at distance: ", global_position.distance_to(player.global_position))
+
 	is_attacking = true
-	
-	# Flash orange when attacking
+
 	if sprite:
 		sprite.modulate = Color.ORANGE
 		await get_tree().create_timer(0.1).timeout
 		if is_instance_valid(sprite):
 			sprite.modulate = Color.WHITE
-	
-	# Deal damage to player
-	print("Calling player.take_damage(", melee_damage, ")")
-	player.take_damage(melee_damage, global_position)  # Pass enemy position for knockback
+
+	player.take_damage(melee_damage, global_position)
 	is_attacking = false
 
 func take_damage(amount: int, from_position: Vector2 = Vector2.ZERO):
 	current_health -= amount
-	print("Enemy took ", amount, " damage! Health: ", current_health, "/", max_health)
-	
-	# Apply knockback away from bullet
+
 	if from_position != Vector2.ZERO:
 		var knockback_dir = (global_position - from_position).normalized()
 		knockback_velocity = knockback_dir * knockback_strength
-		print("Enemy knockback applied: ", knockback_velocity)
-	
-	# Flash effect
+
 	flash_damage()
 	
 	update_health_bar()
@@ -129,8 +102,6 @@ func update_health_bar():
 		health_bar.value = current_health
 
 func die():
-	print("Enemy died!")
-	
 	# Death effect
 	var death_effect = Node2D.new()
 	death_effect.global_position = global_position

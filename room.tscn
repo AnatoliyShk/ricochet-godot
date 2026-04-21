@@ -1,11 +1,13 @@
-[gd_scene load_steps=11 format=3 uid="uid://cqjpgkanek3al"]
+[gd_scene load_steps=13 format=3 uid="uid://cqjpgkanek3al"]
 
 [ext_resource type="PackedScene" uid="uid://eranmuupilel" path="res://Player.tscn" id="1_88gup"]
 [ext_resource type="Shader" uid="uid://yxixume4y25u" path="res://crt_effect.gdshader" id="1_ka7wq"]
 [ext_resource type="PackedScene" uid="uid://dre2urm3et2yy" path="res://wall_segment.tscn" id="3_4o3f6"]
-[ext_resource type="PackedScene" uid="uid://73olhx6mgron" path="res://rotating_wall.tscn" id="3_v5vuv"]
 [ext_resource type="Shader" uid="uid://bk3kkdhfu3km" path="res://bloom.gdshader" id="3_x5k2b"]
 [ext_resource type="PackedScene" uid="uid://byf8qsanusgxe" path="res://enemy.tscn" id="4_v5vuv"]
+[ext_resource type="Script" uid="uid://bhudhudscript00" path="res://hud.gd" id="5_hud"]
+[ext_resource type="Script" uid="uid://bdmgefx0script1" path="res://damage_effect.gd" id="6_dmg"]
+[ext_resource type="Script" uid="uid://bpausemenu12345" path="res://pause_menu.gd" id="7_pause"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_8cv3p"]
 shader = ExtResource("3_x5k2b")
@@ -23,9 +25,9 @@ shader_parameter/screen_tint = Color(1, 0.95, 0.9, 1)
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_ka7wq"]
 
 [sub_resource type="NavigationPolygon" id="NavigationPolygon_v5vuv"]
-vertices = PackedVector2Array(-76.07031, 215.32031, -78.90625, -148.72656, 1075.3125, -119.24219, 500.1328, 57.539063, 494.1172, 524.96094, 252.22656, 524.03125, 259.22656, 226.32813, 1088.6875, 297.4375, 834.5703, 308.5703, 830.6172, 212.59375, 626.21094, 199.61719, 629.21094, 63.460938)
-polygons = Array[PackedInt32Array]([PackedInt32Array(0, 1, 2, 3), PackedInt32Array(4, 5, 6, 3), PackedInt32Array(7, 8, 9, 2), PackedInt32Array(9, 10, 11, 2), PackedInt32Array(3, 6, 0), PackedInt32Array(3, 2, 11)])
-outlines = Array[PackedVector2Array]([PackedVector2Array(1099, 307, 825, 319, 821, 222, 616, 209, 619, 73, 510, 68, 504, 535, 242, 534, 249, 236, -86, 225, -89, -159, 1085, -129)])
+vertices = PackedVector2Array(70, 70, 1130, 70, 1130, 930, 70, 930)
+polygons = Array[PackedInt32Array]([PackedInt32Array(0, 1, 2, 3)])
+outlines = Array[PackedVector2Array]([PackedVector2Array(70, 70, 1130, 70, 1130, 930, 70, 930)])
 
 [node name="Node2D" type="Node2D"]
 
@@ -57,7 +59,7 @@ mouse_filter = 2
 copy_mode = 2
 
 [node name="Player" parent="." instance=ExtResource("1_88gup")]
-position = Vector2(545, 362)
+position = Vector2(600, 500)
 move_speed = 500.0
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
@@ -77,42 +79,62 @@ grow_vertical = 2
 mouse_filter = 2
 color = Color(0, 0, 0, 1)
 
-[node name="WallSegment" parent="." instance=ExtResource("3_4o3f6")]
-position = Vector2(1158, 819)
+[node name="Wall_Left1" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(35, 167)
 
-[node name="WallSegment2" parent="." instance=ExtResource("3_4o3f6")]
-position = Vector2(592, -354.99997)
+[node name="Wall_Left2" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(35, 500)
+
+[node name="Wall_Left3" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(35, 833)
+
+[node name="Wall_Right1" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(1165, 167)
+
+[node name="Wall_Right2" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(1165, 500)
+
+[node name="Wall_Right3" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(1165, 833)
+
+[node name="Wall_Top1" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(200, 35)
 rotation = 1.5707964
 
-[node name="WallSegment3" parent="." instance=ExtResource("3_4o3f6")]
-position = Vector2(557, 851)
+[node name="Wall_Top2" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(600, 35)
+rotation = 1.5707964
 
-[node name="WallSegment4" parent="." instance=ExtResource("3_4o3f6")]
-position = Vector2(-147.99998, 926)
+[node name="Wall_Top3" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(1000, 35)
+rotation = 1.5707964
 
-[node name="RotatingWall" parent="." instance=ExtResource("3_v5vuv")]
-position = Vector2(176, 388)
+[node name="Wall_Bottom1" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(200, 965)
+rotation = 1.5707964
 
-[node name="RotatingWall2" parent="." instance=ExtResource("3_v5vuv")]
-position = Vector2(697, 391)
+[node name="Wall_Bottom2" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(600, 965)
+rotation = 1.5707964
 
-[node name="WallSegment5" parent="." instance=ExtResource("3_4o3f6")]
-position = Vector2(1159, 354.99997)
-
-[node name="WallSegment6" parent="." instance=ExtResource("3_4o3f6")]
-position = Vector2(1158.9999, -111.000046)
-
-[node name="WallSegment7" parent="." instance=ExtResource("3_4o3f6")]
-position = Vector2(-146, -11.000003)
-
-[node name="WallSegment8" parent="." instance=ExtResource("3_4o3f6")]
-position = Vector2(-148, 457.99997)
+[node name="Wall_Bottom3" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(1000, 965)
+rotation = 1.5707964
 
 [node name="Enemy" parent="." instance=ExtResource("4_v5vuv")]
-position = Vector2(1016, 197)
+position = Vector2(900, 500)
 
 [node name="NavigationRegion2D" type="NavigationRegion2D" parent="."]
-position = Vector2(4, 40)
 navigation_polygon = SubResource("NavigationPolygon_v5vuv")
+
+[node name="UILayer" type="CanvasLayer" parent="."]
+layer = 2
+script = ExtResource("5_hud")
+
+[node name="DamageEffect" type="CanvasLayer" parent="."]
+script = ExtResource("6_dmg")
+
+[node name="PauseMenu" type="CanvasLayer" parent="."]
+script = ExtResource("7_pause")
 
 [node name="Node2D" type="Node2D" parent="."]

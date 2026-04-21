@@ -40,12 +40,8 @@ func _ready():
 		trail_line.add_point(Vector2(-trail_length, 0))
 		add_child(trail_line)
 	
-	print("Bullet spawned - Direction: ", direction, " Speed: ", speed)
-	
-	# Auto-destroy after lifetime expires
 	await get_tree().create_timer(lifetime).timeout
 	if is_instance_valid(self):
-		print("Bullet timeout - destroying")
 		queue_free()
 
 func _draw():
@@ -141,8 +137,6 @@ func play_impact_sound_effect():
 	impact_sound.finished.connect(func(): impact_sound.queue_free())
 
 func _handle_hit(body: Node, normal: Vector2):
-	print("Bullet hit: ", body.name, " normal: ", normal)
-
 	if ricochet_enabled and ricochet_count < max_ricochets:
 		var is_wall = body.is_in_group("walls") or body is StaticBody2D or body is TileMap
 
@@ -167,8 +161,6 @@ func _handle_hit(body: Node, normal: Vector2):
 				if trail_line:
 					trail_line.default_color = trail_color_after_ricochet
 				queue_redraw()
-
-			print("  -> RICOCHETED! New direction: ", direction, " Count: ", ricochet_count)
 			return
 
 	if body.is_in_group("enemies"):

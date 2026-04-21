@@ -13,10 +13,8 @@ var shake_timer: float = 0.0
 func _ready():
 	# Store the GLOBAL position, not local
 	original_position = global_position
-	# Make sure wall is in the "walls" group for ricochets
 	add_to_group("walls")
-	print("Wall initialized at: ", original_position)
-	
+
 	# Auto-create NavigationObstacle2D for pathfinding
 	setup_navigation_obstacle()
 
