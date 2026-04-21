@@ -35,5 +35,3 @@ shape = SubResource("CapsuleShape2D_dgwo2")
 [node name="ImpactSound" type="AudioStreamPlayer2D" parent="."]
 position = Vector2(-2, 2)
 stream = ExtResource("3_dgwo2")
-
-[connection signal="body_entered" from="." to="." method="_on_body_entered"]

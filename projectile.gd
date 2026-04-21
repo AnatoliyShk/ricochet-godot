@@ -28,15 +28,9 @@ var trail_line: Line2D = null  # Reference to trail for color change
 @onready var impact_sound = $ImpactSound if has_node("ImpactSound") else null
 
 func _ready():
-	# IMPORTANT: Make bullet only collide with bodies, not areas
 	set_collision_mask_value(1, true)
 	set_collision_layer_value(2, true)
-	
-	# Force connect signals in code
-	if not body_entered.is_connected(_on_body_entered):
-		body_entered.connect(_on_body_entered)
-		print("Signal connected successfully!")
-	
+
 	# Add trail effect
 	if trail_enabled:
 		trail_line = Line2D.new()
@@ -68,13 +62,29 @@ func _draw():
 	draw_colored_polygon(tip_points, Color.WHITE)
 
 func _physics_process(delta):
-	var movement = direction * speed * delta
-	position += movement
-	
+	# Track when bullet has cleared the shooter
 	if shooter and not has_left_shooter:
-		var distance = global_position.distance_to(shooter.global_position)
-		if distance > 50:
+		if global_position.distance_to(shooter.global_position) > 50:
 			has_left_shooter = true
+
+	var motion = direction * speed * delta
+
+	var space_state = get_world_2d().direct_space_state
+	var query = PhysicsRayQueryParameters2D.create(
+		global_position,
+		global_position + motion
+	)
+	query.collide_with_areas = false
+	query.collide_with_bodies = true
+	query.exclude = [shooter] if shooter and not has_left_shooter else []
+
+	var result = space_state.intersect_ray(query)
+
+	if result:
+		global_position = result.position
+		_handle_hit(result.collider, result.normal)
+	else:
+		position += motion
 
 func spawn_impact_effect(at_position: Vector2, impact_color: Color = Color.WHITE):
 	if not show_impact_effects:
@@ -130,94 +140,47 @@ func play_impact_sound_effect():
 	# Auto-delete sound after it finishes
 	impact_sound.finished.connect(func(): impact_sound.queue_free())
 
-func _on_body_entered(body):
-	print("Bullet collision with: ", body.name, " Type: ", body.get_class())
-	print("  Current direction: ", direction)
-	
-	if shooter and body == shooter and not has_left_shooter:
-		print("  -> Ignoring shooter")
-		return
-	
+func _handle_hit(body: Node, normal: Vector2):
+	print("Bullet hit: ", body.name, " normal: ", normal)
+
 	if ricochet_enabled and ricochet_count < max_ricochets:
 		var is_wall = body.is_in_group("walls") or body is StaticBody2D or body is TileMap
-		
+
 		if is_wall:
-			print("  -> This is a wall! Attempting ricochet...")
-			
-			# Notify wall about impact
 			if body.has_method("on_bullet_impact"):
 				body.on_bullet_impact(global_position)
-			
-			# Play impact sound
+
 			play_impact_sound_effect()
-			
-			var space_state = get_world_2d().direct_space_state
-			var query = PhysicsRayQueryParameters2D.create(
-				global_position - direction * 15,
-				global_position + direction * 5
-			)
-			query.collide_with_areas = false
-			query.collide_with_bodies = true
-			query.exclude = [shooter] if shooter else []
-			
-			var result = space_state.intersect_ray(query)
-			
-			if result and result.collider == body:
-				var normal = result.normal
-				print("  -> Surface normal: ", normal)
-				
-				spawn_impact_effect(result.position, Color.YELLOW)
-				
-				if abs(normal.x) > abs(normal.y):
-					direction.x = -direction.x
-					print("  -> Hit vertical wall, flipping X")
-				else:
-					direction.y = -direction.y
-					print("  -> Hit horizontal wall, flipping Y")
-			else:
-				print("  -> Raycast failed, using fallback")
-				spawn_impact_effect(global_position, Color.YELLOW)
-				
-				var to_wall = body.global_position - global_position
-				if abs(to_wall.x) > abs(to_wall.y):
-					direction.x = -direction.x
-				else:
-					direction.y = -direction.y
-			
+			spawn_impact_effect(global_position, Color.YELLOW)
+
+			# Reflect using the surface normal — works for any wall angle
+			direction = direction.reflect(normal)
 			rotation = direction.angle()
 			speed *= ricochet_speed_loss
 			ricochet_count += 1
-			
-			# Mark as ricocheted and change color
+
+			# Step away from wall so next frame's raycast doesn't re-hit it
+			global_position += direction * 4
+
 			if not has_ricocheted:
 				has_ricocheted = true
-				# Change trail color
 				if trail_line:
 					trail_line.default_color = trail_color_after_ricochet
-				# Redraw bullet with new color
 				queue_redraw()
-			
+
 			print("  -> RICOCHETED! New direction: ", direction, " Count: ", ricochet_count)
 			return
-	
+
 	if body.is_in_group("enemies"):
-		print("  -> Hit enemy!")
-		
-		# Check if bullet has ricocheted at least once
 		if has_ricocheted:
-			print("  -> Bullet ricocheted! Dealing damage")
 			spawn_impact_effect(global_position, Color.RED)
 			play_impact_sound_effect()
 			if body.has_method("take_damage"):
-				body.take_damage(damage, global_position)  # Pass bullet position for knockback
+				body.take_damage(damage, global_position)
 		else:
-			print("  -> Bullet hasn't ricocheted! No damage")
 			spawn_impact_effect(global_position, Color.ORANGE)
 			play_impact_sound_effect()
-	
-	# Play sound and show effect when destroyed
+
 	play_impact_sound_effect()
 	spawn_impact_effect(global_position, Color.ORANGE)
-	
-	print("  -> Destroying bullet")
 	queue_free()
