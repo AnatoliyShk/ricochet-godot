@@ -21,7 +21,7 @@ func _ready():
 
 func _process(delta):
 	# Only show trajectory when right mouse button is held
-	var show = Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT)
+	var show = Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT) and not Input.is_key_pressed(KEY_CTRL)
 	
 	if show and show_trajectory:
 		update_trajectory()

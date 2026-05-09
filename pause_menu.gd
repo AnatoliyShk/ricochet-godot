@@ -40,6 +40,11 @@ func _resume():
 	get_tree().paused = false
 
 
+func _restart():
+	get_tree().paused = false
+	get_tree().reload_current_scene()
+
+
 func _show_main():
 	_main_view.show()
 	_options_view.hide()
@@ -130,6 +135,10 @@ func _build_main() -> Control:
 	var resume := _make_button("RESUME")
 	resume.pressed.connect(_resume)
 	vbox.add_child(resume)
+
+	var restart := _make_button("RESTART")
+	restart.pressed.connect(_restart)
+	vbox.add_child(restart)
 
 	var options := _make_button("OPTIONS")
 	options.pressed.connect(_show_options)

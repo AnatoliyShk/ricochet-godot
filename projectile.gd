@@ -13,7 +13,7 @@ extends Area2D
 @export var trail_color: Color = Color.YELLOW
 @export var trail_color_after_ricochet: Color = Color.GREEN
 @export var ricochet_enabled: bool = true
-@export var max_ricochets: int = 3
+@export var max_ricochets: int = 4
 @export var ricochet_speed_loss: float = 0.8
 @export var show_impact_effects: bool = true
 @export var play_impact_sound: bool = true
@@ -45,8 +45,7 @@ func _ready():
 		queue_free()
 
 func _draw():
-	# Use green color after ricochet
-	var current_color = bullet_color_after_ricochet if has_ricocheted else bullet_color
+	var current_color = _ricochet_color() if has_ricocheted else bullet_color
 	
 	draw_rect(Rect2(-bullet_length/2, -bullet_width/2, bullet_length, bullet_width), current_color)
 	draw_rect(Rect2(-bullet_length/2, -bullet_width/4, bullet_length, bullet_width/2), Color.WHITE)
@@ -136,43 +135,88 @@ func play_impact_sound_effect():
 	# Auto-delete sound after it finishes
 	impact_sound.finished.connect(func(): impact_sound.queue_free())
 
+func _ricochet_color() -> Color:
+	match ricochet_count:
+		1: return Color.GREEN
+		2: return Color(0.3, 0.6, 1.0)
+		3: return Color(0.7, 0.2, 1.0)
+		_: return Color(1.0, 0.55, 0.1)
+
+
+func _damage_multiplier() -> float:
+	match ricochet_count:
+		2: return 1.5
+		3: return 2.0
+		_ : return 4.0 if ricochet_count >= 4 else 1.0
+
+
+func _apply_ricochet_visuals() -> void:
+	has_ricocheted = true
+	var c := _ricochet_color()
+	if trail_line:
+		trail_line.default_color = c
+	queue_redraw()
+
+
 func _handle_hit(body: Node, normal: Vector2):
+	# Wall / shield ricochet
 	if ricochet_enabled and ricochet_count < max_ricochets:
 		var is_wall = body.is_in_group("walls") or body is StaticBody2D or body is TileMap
-
 		if is_wall:
 			if body.has_method("on_bullet_impact"):
 				body.on_bullet_impact(global_position)
-
 			play_impact_sound_effect()
-			spawn_impact_effect(global_position, Color.YELLOW)
+			spawn_impact_effect(global_position, _ricochet_color() if has_ricocheted else Color.YELLOW)
 
-			# Reflect using the surface normal — works for any wall angle
-			direction = direction.reflect(normal)
+			if body.is_in_group("shield"):
+				# 90° deflection — perpendicular to incoming direction
+				direction = Vector2(-direction.y, direction.x)
+			elif abs(normal.x) > abs(normal.y):
+				direction.x = -direction.x
+			else:
+				direction.y = -direction.y
+
 			rotation = direction.angle()
 			speed *= ricochet_speed_loss
 			ricochet_count += 1
-
-			# Step away from wall so next frame's raycast doesn't re-hit it
 			global_position += direction * 4
-
-			if not has_ricocheted:
-				has_ricocheted = true
-				if trail_line:
-					trail_line.default_color = trail_color_after_ricochet
-				queue_redraw()
+			_apply_ricochet_visuals()
 			return
 
+	# Enemy hit
 	if body.is_in_group("enemies"):
 		if has_ricocheted:
 			spawn_impact_effect(global_position, Color.RED)
 			play_impact_sound_effect()
 			if body.has_method("take_damage"):
-				body.take_damage(damage, global_position)
+				body.take_damage(int(ceil(damage * _damage_multiplier())), global_position)
+			queue_free()
 		else:
-			spawn_impact_effect(global_position, Color.ORANGE)
-			play_impact_sound_effect()
+			# Non-ricocheted bullet: enemy bats it back toward the player
+			var player_node = get_tree().get_first_node_in_group("player")
+			if player_node:
+				direction = (player_node.global_position - global_position).normalized()
+				rotation = direction.angle()
+				global_position += direction * 8
+				spawn_impact_effect(global_position, Color.CYAN)
+				play_impact_sound_effect()
+				# Bullet continues — no queue_free
+			else:
+				spawn_impact_effect(global_position, Color.ORANGE)
+				play_impact_sound_effect()
+				queue_free()
+		return
 
-	play_impact_sound_effect()
+	# Player hit (redirected bullet coming back)
+	if body.is_in_group("player"):
+		spawn_impact_effect(global_position, Color.RED)
+		play_impact_sound_effect()
+		if body.has_method("take_damage"):
+			body.take_damage(damage, global_position)
+		queue_free()
+		return
+
+	# Fallback
 	spawn_impact_effect(global_position, Color.ORANGE)
+	play_impact_sound_effect()
 	queue_free()

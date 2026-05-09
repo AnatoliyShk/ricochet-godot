@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Read(//c/Users/user/Documents/**)",
-      "Read(//c/Users/user/Documents/RicohetVault/**)"
+      "Read(//c/Users/user/Documents/RicohetVault/**)",
+      "Bash(python3 *)"
     ]
   }
 }

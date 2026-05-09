@@ -40,4 +40,3 @@ arrow_speed = 200.0
 
 [node name="ShootSound" type="AudioStreamPlayer2D" parent="."]
 stream = ExtResource("6_tdg3f")
-

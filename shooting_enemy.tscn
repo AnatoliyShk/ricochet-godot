@@ -1,24 +1,24 @@
-[gd_scene load_steps=4 format=3 uid="uid://byf8qsanusgxe"]
+[gd_scene load_steps=4 format=3]
 
-[ext_resource type="Script" uid="uid://c4ilk1nep82k" path="res://enemy.gd" id="1_4gyqm"]
-[ext_resource type="Texture2D" uid="uid://f70w65o52iei" path="res://7e4208ec-34a3-4cd6-8c99-28ec5d6e95c9.jpg" id="3_qi2p4"]
+[ext_resource type="Script" path="res://shooting_enemy.gd" id="1_shenemy"]
+[ext_resource type="Texture2D" uid="uid://f70w65o52iei" path="res://7e4208ec-34a3-4cd6-8c99-28ec5d6e95c9.jpg" id="2_shenemy"]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_qi2p4"]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_shenemy"]
 size = Vector2(160, 260)
 
-[node name="Enemy" type="CharacterBody2D"]
+[node name="ShootingEnemy" type="CharacterBody2D"]
 scale = Vector2(0.5, 0.5)
-script = ExtResource("1_4gyqm")
-knockback_strength = 3000.0
+script = ExtResource("1_shenemy")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 position = Vector2(-5, 20)
-shape = SubResource("RectangleShape2D_qi2p4")
+shape = SubResource("RectangleShape2D_shenemy")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 position = Vector2(-6, 11)
 scale = Vector2(0.32015306, 0.28681508)
-texture = ExtResource("3_qi2p4")
+modulate = Color(0.4, 0.65, 1.0, 1.0)
+texture = ExtResource("2_shenemy")
 
 [node name="HealthBar" type="ProgressBar" parent="."]
 offset_left = -131.0

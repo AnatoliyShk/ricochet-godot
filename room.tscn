@@ -1,13 +1,15 @@
-[gd_scene load_steps=13 format=3 uid="uid://cqjpgkanek3al"]
+[gd_scene load_steps=15 format=3 uid="uid://cqjpgkanek3al"]
 
 [ext_resource type="PackedScene" uid="uid://eranmuupilel" path="res://Player.tscn" id="1_88gup"]
 [ext_resource type="Shader" uid="uid://yxixume4y25u" path="res://crt_effect.gdshader" id="1_ka7wq"]
 [ext_resource type="PackedScene" uid="uid://dre2urm3et2yy" path="res://wall_segment.tscn" id="3_4o3f6"]
 [ext_resource type="Shader" uid="uid://bk3kkdhfu3km" path="res://bloom.gdshader" id="3_x5k2b"]
 [ext_resource type="PackedScene" uid="uid://byf8qsanusgxe" path="res://enemy.tscn" id="4_v5vuv"]
-[ext_resource type="Script" uid="uid://bhudhudscript00" path="res://hud.gd" id="5_hud"]
-[ext_resource type="Script" uid="uid://bdmgefx0script1" path="res://damage_effect.gd" id="6_dmg"]
-[ext_resource type="Script" uid="uid://bpausemenu12345" path="res://pause_menu.gd" id="7_pause"]
+[ext_resource type="Script" uid="uid://bd7c11ulsd6b3" path="res://hud.gd" id="5_hud"]
+[ext_resource type="Script" uid="uid://ds46o587anq0k" path="res://damage_effect.gd" id="6_dmg"]
+[ext_resource type="Script" uid="uid://cpvsj03teiyby" path="res://pause_menu.gd" id="7_pause"]
+[ext_resource type="Script" path="res://room.gd" id="9_room"]
+[ext_resource type="Script" path="res://enemy_spawner.gd" id="10_spawn"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_8cv3p"]
 shader = ExtResource("3_x5k2b")
@@ -30,6 +32,7 @@ polygons = Array[PackedInt32Array]([PackedInt32Array(0, 1, 2, 3)])
 outlines = Array[PackedVector2Array]([PackedVector2Array(70, 70, 1130, 70, 1130, 930, 70, 930)])
 
 [node name="Node2D" type="Node2D"]
+script = ExtResource("9_room")
 
 [node name="BloomLayer" type="CanvasLayer" parent="."]
 layer = 9
@@ -77,48 +80,48 @@ offset_bottom = 30.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-color = Color(0, 0, 0, 1)
+color = Color(0.18, 0.18, 0.18, 1)
 
 [node name="Wall_Left1" parent="." instance=ExtResource("3_4o3f6")]
-position = Vector2(35, 167)
+position = Vector2(-403.99997, 214)
 
 [node name="Wall_Left2" parent="." instance=ExtResource("3_4o3f6")]
-position = Vector2(35, 500)
+position = Vector2(-313.99997, 879)
 
 [node name="Wall_Left3" parent="." instance=ExtResource("3_4o3f6")]
-position = Vector2(35, 833)
+position = Vector2(-59.999992, 1271)
 
 [node name="Wall_Right1" parent="." instance=ExtResource("3_4o3f6")]
-position = Vector2(1165, 167)
+position = Vector2(1414, -61.999985)
 
 [node name="Wall_Right2" parent="." instance=ExtResource("3_4o3f6")]
-position = Vector2(1165, 500)
+position = Vector2(1429, 468)
 
 [node name="Wall_Right3" parent="." instance=ExtResource("3_4o3f6")]
-position = Vector2(1165, 833)
+position = Vector2(2088, 1019)
 
 [node name="Wall_Top1" parent="." instance=ExtResource("3_4o3f6")]
-position = Vector2(200, 35)
+position = Vector2(-157.99997, -253.99997)
 rotation = 1.5707964
 
 [node name="Wall_Top2" parent="." instance=ExtResource("3_4o3f6")]
-position = Vector2(600, 35)
+position = Vector2(459, -206.99998)
 rotation = 1.5707964
 
 [node name="Wall_Top3" parent="." instance=ExtResource("3_4o3f6")]
-position = Vector2(1000, 35)
+position = Vector2(1021, -236.99997)
 rotation = 1.5707964
 
 [node name="Wall_Bottom1" parent="." instance=ExtResource("3_4o3f6")]
-position = Vector2(200, 965)
+position = Vector2(343.99997, 1337)
 rotation = 1.5707964
 
 [node name="Wall_Bottom2" parent="." instance=ExtResource("3_4o3f6")]
-position = Vector2(600, 965)
+position = Vector2(915, 843)
 rotation = 1.5707964
 
 [node name="Wall_Bottom3" parent="." instance=ExtResource("3_4o3f6")]
-position = Vector2(1000, 965)
+position = Vector2(1308, 1314)
 rotation = 1.5707964
 
 [node name="Enemy" parent="." instance=ExtResource("4_v5vuv")]
@@ -136,5 +139,8 @@ script = ExtResource("6_dmg")
 
 [node name="PauseMenu" type="CanvasLayer" parent="."]
 script = ExtResource("7_pause")
+
+[node name="EnemySpawner" type="Node2D" parent="."]
+script = ExtResource("10_spawn")
 
 [node name="Node2D" type="Node2D" parent="."]
