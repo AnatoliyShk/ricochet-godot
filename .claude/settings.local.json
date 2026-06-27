@@ -3,7 +3,15 @@
     "allow": [
       "Read(//c/Users/user/Documents/**)",
       "Read(//c/Users/user/Documents/RicohetVault/**)",
-      "Bash(python3 *)"
+      "Bash(python3 *)",
+      "Bash(Get-ChildItem \"C:\\\\Users\\\\user\\\\Documents\\\\RicohetVault\" -Recurse -Filter \"*.md\")",
+      "Bash(Select-Object FullName)",
+      "Bash(python -c \"from PIL import Image; img = Image.open\\('factory_metal_floor.png'\\); print\\(img.size\\)\")",
+      "PowerShell(Add-Type -AssemblyName System.Drawing; $img = [System.Drawing.Image]::FromFile\\(\"C:\\\\Users\\\\user\\\\Documents\\\\ricochet\\\\factory_metal_floor.png\"\\); \"$\\($img.Width\\) x $\\($img.Height\\)\"; $img.Dispose\\(\\))",
+      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\user\\\\Documents\\\\ricochet\\\\.godot\\\\imported\\\\\" | Where-Object { $_.Name -match \"main-character|43F98915\" })",
+      "PowerShell(Add-Type -AssemblyName System.Drawing; $img = [System.Drawing.Image]::FromFile\\(\\(Resolve-Path 'C:\\\\Users\\\\user\\\\Documents\\\\ricochet\\\\main-character-sprite.png'\\)\\); Write-Host \"Width: $\\($img.Width\\), Height: $\\($img.Height\\)\"; $img.Dispose\\(\\))",
+      "PowerShell(Format-Hex *)",
+      "Bash(Select-String -Pattern \"enemy|Enemy|sprite|Sprite\")"
     ]
   }
 }

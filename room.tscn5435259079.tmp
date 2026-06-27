@@ -1,0 +1,147 @@
+[gd_scene load_steps=15 format=3 uid="uid://cqjpgkanek3al"]
+
+[ext_resource type="PackedScene" uid="uid://eranmuupilel" path="res://Player.tscn" id="1_88gup"]
+[ext_resource type="Shader" uid="uid://yxixume4y25u" path="res://crt_effect.gdshader" id="1_ka7wq"]
+[ext_resource type="PackedScene" uid="uid://dre2urm3et2yy" path="res://wall_segment.tscn" id="3_4o3f6"]
+[ext_resource type="Shader" uid="uid://bk3kkdhfu3km" path="res://bloom.gdshader" id="3_x5k2b"]
+[ext_resource type="PackedScene" uid="uid://byf8qsanusgxe" path="res://enemy.tscn" id="4_v5vuv"]
+[ext_resource type="Script" uid="uid://bd7c11ulsd6b3" path="res://hud.gd" id="5_hud"]
+[ext_resource type="Script" uid="uid://ds46o587anq0k" path="res://damage_effect.gd" id="6_dmg"]
+[ext_resource type="Script" uid="uid://cpvsj03teiyby" path="res://pause_menu.gd" id="7_pause"]
+[ext_resource type="Script" uid="uid://boht67no5wmlj" path="res://room.gd" id="9_room"]
+[ext_resource type="Script" uid="uid://v4wxohegp53q" path="res://enemy_spawner.gd" id="10_spawn"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_8cv3p"]
+shader = ExtResource("3_x5k2b")
+shader_parameter/bloom_intensity = 0.8
+shader_parameter/bloom_threshold = 0.6
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_x5k2b"]
+shader = ExtResource("1_ka7wq")
+shader_parameter/curvature = 2.5
+shader_parameter/scanline_strength = 0.3
+shader_parameter/vignette_strength = 0.5
+shader_parameter/scanline_count = 400.0
+shader_parameter/screen_tint = Color(1, 0.95, 0.9, 1)
+shader_parameter/tv_off = 0.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_ka7wq"]
+
+[sub_resource type="NavigationPolygon" id="NavigationPolygon_v5vuv"]
+vertices = PackedVector2Array(70, 70, 1130, 70, 1130, 930, 70, 930)
+polygons = Array[PackedInt32Array]([PackedInt32Array(0, 1, 2, 3)])
+outlines = Array[PackedVector2Array]([PackedVector2Array(70, 70, 1130, 70, 1130, 930, 70, 930)])
+
+[node name="Node2D" type="Node2D"]
+script = ExtResource("9_room")
+
+[node name="BloomLayer" type="CanvasLayer" parent="."]
+layer = 9
+
+[node name="ColorRect" type="ColorRect" parent="BloomLayer"]
+material = SubResource("ShaderMaterial_8cv3p")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="CanvasLayer2" type="CanvasLayer" parent="."]
+layer = 10
+
+[node name="CRTEffect" type="ColorRect" parent="CanvasLayer2"]
+material = SubResource("ShaderMaterial_x5k2b")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="BackBufferCopy" type="BackBufferCopy" parent="CanvasLayer2"]
+copy_mode = 2
+
+[node name="Player" parent="." instance=ExtResource("1_88gup")]
+position = Vector2(600, 500)
+move_speed = 500.0
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+layer = -1
+
+[node name="ColorRect" type="ColorRect" parent="CanvasLayer"]
+material = SubResource("ShaderMaterial_ka7wq")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -38.0
+offset_top = 30.0
+offset_right = -38.0
+offset_bottom = 30.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.18, 0.18, 0.18, 1)
+
+[node name="Wall_Left1" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(-403.99997, 214)
+
+[node name="Wall_Left2" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(-313.99997, 879)
+
+[node name="Wall_Left3" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(-59.999992, 1271)
+
+[node name="Wall_Right1" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(1414, -61.999985)
+
+[node name="Wall_Right2" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(1429, 468)
+
+[node name="Wall_Right3" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(2088, 1019)
+
+[node name="Wall_Top1" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(-157.99997, -253.99997)
+rotation = 1.5707964
+
+[node name="Wall_Top2" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(459, -206.99998)
+rotation = 1.5707964
+
+[node name="Wall_Top3" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(1021, -236.99997)
+rotation = 1.5707964
+
+[node name="Wall_Bottom1" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(343.99997, 1337)
+rotation = 1.5707964
+
+[node name="Wall_Bottom2" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(915, 843)
+rotation = 1.5707964
+
+[node name="Wall_Bottom3" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(1308, 1314)
+rotation = 1.5707964
+
+[node name="Enemy" parent="." instance=ExtResource("4_v5vuv")]
+position = Vector2(900, 500)
+
+[node name="NavigationRegion2D" type="NavigationRegion2D" parent="."]
+navigation_polygon = SubResource("NavigationPolygon_v5vuv")
+
+[node name="UILayer" type="CanvasLayer" parent="."]
+layer = 2
+script = ExtResource("5_hud")
+
+[node name="DamageEffect" type="CanvasLayer" parent="."]
+script = ExtResource("6_dmg")
+
+[node name="PauseMenu" type="CanvasLayer" parent="."]
+script = ExtResource("7_pause")
+
+[node name="EnemySpawner" type="Node2D" parent="."]
+script = ExtResource("10_spawn")
+
+[node name="Node2D" type="Node2D" parent="."]

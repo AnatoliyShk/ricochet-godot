@@ -15,7 +15,7 @@ position = Vector2(-5, 20)
 shape = SubResource("RectangleShape2D_shenemy")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
-position = Vector2(-6, 11)
+position = Vector2(-5, 20)
 scale = Vector2(0.32015306, 0.28681508)
 modulate = Color(0.4, 0.65, 1.0, 1.0)
 texture = ExtResource("2_shenemy")

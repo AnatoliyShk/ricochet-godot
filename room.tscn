@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3 uid="uid://cqjpgkanek3al"]
+[gd_scene load_steps=16 format=3 uid="uid://cqjpgkanek3al"]
 
 [ext_resource type="PackedScene" uid="uid://eranmuupilel" path="res://Player.tscn" id="1_88gup"]
 [ext_resource type="Shader" uid="uid://yxixume4y25u" path="res://crt_effect.gdshader" id="1_ka7wq"]
@@ -8,8 +8,9 @@
 [ext_resource type="Script" uid="uid://bd7c11ulsd6b3" path="res://hud.gd" id="5_hud"]
 [ext_resource type="Script" uid="uid://ds46o587anq0k" path="res://damage_effect.gd" id="6_dmg"]
 [ext_resource type="Script" uid="uid://cpvsj03teiyby" path="res://pause_menu.gd" id="7_pause"]
-[ext_resource type="Script" path="res://room.gd" id="9_room"]
-[ext_resource type="Script" path="res://enemy_spawner.gd" id="10_spawn"]
+[ext_resource type="Script" uid="uid://boht67no5wmlj" path="res://room.gd" id="9_room"]
+[ext_resource type="Script" uid="uid://v4wxohegp53q" path="res://enemy_spawner.gd" id="10_spawn"]
+[ext_resource type="PackedScene" uid="uid://73olhx6mgron" path="res://rotating_wall.tscn" id="11_rotw"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_8cv3p"]
 shader = ExtResource("3_x5k2b")
@@ -18,18 +19,19 @@ shader_parameter/bloom_threshold = 0.6
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_x5k2b"]
 shader = ExtResource("1_ka7wq")
-shader_parameter/curvature = 2.0
+shader_parameter/curvature = 2.5
 shader_parameter/scanline_strength = 0.3
 shader_parameter/vignette_strength = 0.5
 shader_parameter/scanline_count = 400.0
 shader_parameter/screen_tint = Color(1, 0.95, 0.9, 1)
+shader_parameter/tv_off = 0.0
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_ka7wq"]
 
 [sub_resource type="NavigationPolygon" id="NavigationPolygon_v5vuv"]
-vertices = PackedVector2Array(70, 70, 1130, 70, 1130, 930, 70, 930)
+vertices = PackedVector2Array(70, 70, 2430, 70, 2430, 2030, 70, 2030)
 polygons = Array[PackedInt32Array]([PackedInt32Array(0, 1, 2, 3)])
-outlines = Array[PackedVector2Array]([PackedVector2Array(70, 70, 1130, 70, 1130, 930, 70, 930)])
+outlines = Array[PackedVector2Array]([PackedVector2Array(70, 70, 2430, 70, 2430, 2030, 70, 2030)])
 
 [node name="Node2D" type="Node2D"]
 script = ExtResource("9_room")
@@ -62,7 +64,7 @@ mouse_filter = 2
 copy_mode = 2
 
 [node name="Player" parent="." instance=ExtResource("1_88gup")]
-position = Vector2(600, 500)
+position = Vector2(1250, 1050)
 move_speed = 500.0
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
@@ -82,50 +84,153 @@ grow_vertical = 2
 mouse_filter = 2
 color = Color(0.18, 0.18, 0.18, 1)
 
-[node name="Wall_Left1" parent="." instance=ExtResource("3_4o3f6")]
-position = Vector2(-403.99997, 214)
+[node name="Border_L1" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(35, 154)
 
-[node name="Wall_Left2" parent="." instance=ExtResource("3_4o3f6")]
-position = Vector2(-313.99997, 879)
+[node name="Border_L2" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(35, 454)
 
-[node name="Wall_Left3" parent="." instance=ExtResource("3_4o3f6")]
-position = Vector2(-59.999992, 1271)
+[node name="Border_L3" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(35, 754)
 
-[node name="Wall_Right1" parent="." instance=ExtResource("3_4o3f6")]
-position = Vector2(1414, -61.999985)
+[node name="Border_L4" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(35, 1054)
 
-[node name="Wall_Right2" parent="." instance=ExtResource("3_4o3f6")]
-position = Vector2(1429, 468)
+[node name="Border_L5" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(35, 1354)
 
-[node name="Wall_Right3" parent="." instance=ExtResource("3_4o3f6")]
-position = Vector2(2088, 1019)
+[node name="Border_L6" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(35, 1654)
 
-[node name="Wall_Top1" parent="." instance=ExtResource("3_4o3f6")]
-position = Vector2(-157.99997, -253.99997)
+[node name="Border_L7" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(35, 1954)
+
+[node name="Border_R1" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(2465, 154)
+
+[node name="Border_R2" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(2465, 454)
+
+[node name="Border_R3" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(2465, 754)
+
+[node name="Border_R4" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(2465, 1054)
+
+[node name="Border_R5" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(2465, 1354)
+
+[node name="Border_R6" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(2465, 1654)
+
+[node name="Border_R7" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(2465, 1954)
+
+[node name="Border_T1" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(154, 35)
 rotation = 1.5707964
 
-[node name="Wall_Top2" parent="." instance=ExtResource("3_4o3f6")]
-position = Vector2(459, -206.99998)
+[node name="Border_T2" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(431, 35)
 rotation = 1.5707964
 
-[node name="Wall_Top3" parent="." instance=ExtResource("3_4o3f6")]
-position = Vector2(1021, -236.99997)
+[node name="Border_T3" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(708, 35)
 rotation = 1.5707964
 
-[node name="Wall_Bottom1" parent="." instance=ExtResource("3_4o3f6")]
-position = Vector2(343.99997, 1337)
+[node name="Border_T4" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(985, 35)
 rotation = 1.5707964
 
-[node name="Wall_Bottom2" parent="." instance=ExtResource("3_4o3f6")]
-position = Vector2(915, 843)
+[node name="Border_T5" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(1262, 35)
 rotation = 1.5707964
 
-[node name="Wall_Bottom3" parent="." instance=ExtResource("3_4o3f6")]
-position = Vector2(1308, 1314)
+[node name="Border_T6" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(1539, 35)
 rotation = 1.5707964
+
+[node name="Border_T7" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(1816, 35)
+rotation = 1.5707964
+
+[node name="Border_T8" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(2093, 35)
+rotation = 1.5707964
+
+[node name="Border_T9" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(2370, 35)
+rotation = 1.5707964
+
+[node name="Border_B1" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(154, 2065)
+rotation = 1.5707964
+
+[node name="Border_B2" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(431, 2065)
+rotation = 1.5707964
+
+[node name="Border_B3" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(708, 2065)
+rotation = 1.5707964
+
+[node name="Border_B4" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(985, 2065)
+rotation = 1.5707964
+
+[node name="Border_B5" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(1262, 2065)
+rotation = 1.5707964
+
+[node name="Border_B6" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(1539, 2065)
+rotation = 1.5707964
+
+[node name="Border_B7" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(1816, 2065)
+rotation = 1.5707964
+
+[node name="Border_B8" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(2093, 2065)
+rotation = 1.5707964
+
+[node name="Border_B9" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(2370, 2065)
+rotation = 1.5707964
+
+[node name="Wall_V1" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(600, 431)
+
+[node name="Wall_V2" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(1200, 1131)
+
+[node name="Wall_V3" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(1900, 431)
+
+[node name="Wall_H1" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(1031, 500)
+rotation = 1.5707964
+
+[node name="Wall_H2" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(531, 1400)
+rotation = 1.5707964
+
+[node name="Wall_H3" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(1831, 1400)
+rotation = 1.5707964
+
+[node name="Wall_H4" parent="." instance=ExtResource("3_4o3f6")]
+position = Vector2(1631, 800)
+rotation = 1.5707964
+
+[node name="RotWall_1" parent="." instance=ExtResource("11_rotw")]
+position = Vector2(900, 1050)
+
+[node name="RotWall_2" parent="." instance=ExtResource("11_rotw")]
+position = Vector2(1600, 1050)
 
 [node name="Enemy" parent="." instance=ExtResource("4_v5vuv")]
-position = Vector2(900, 500)
+position = Vector2(700, 700)
 
 [node name="NavigationRegion2D" type="NavigationRegion2D" parent="."]
 navigation_polygon = SubResource("NavigationPolygon_v5vuv")

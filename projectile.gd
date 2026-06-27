@@ -1,15 +1,20 @@
 extends Area2D
 
+const _RICOCHET_SFX = [
+	preload("res://Audio/Weapon/richochet_sound_1.mp3"),
+	preload("res://Audio/Weapon/richochet_sound_3.mp3"),
+]
+
 @export var speed: float = 600.0
-@export var damage: int = 1
-@export var lifetime: float = 3.0
+@export var damage: float = 1.0
+@export var lifetime: float = 4.0
 @export var bullet_color: Color = Color.YELLOW
 @export var bullet_color_after_ricochet: Color = Color.GREEN
-@export var bullet_length: float = 20.0
-@export var bullet_width: float = 6.0
+@export var bullet_length: float = 22.0
+@export var bullet_width: float = 7.0
 @export var trail_enabled: bool = true
-@export var trail_length: float = 30.0
-@export var trail_width: float = 3.0
+@export var trail_length: float = 38.0
+@export var trail_width: float = 21.0
 @export var trail_color: Color = Color.YELLOW
 @export var trail_color_after_ricochet: Color = Color.GREEN
 @export var ricochet_enabled: bool = true
@@ -17,46 +22,90 @@ extends Area2D
 @export var ricochet_speed_loss: float = 0.8
 @export var show_impact_effects: bool = true
 @export var play_impact_sound: bool = true
+@export var explode_on_death: bool = false
 
 var direction: Vector2 = Vector2.RIGHT
 var shooter = null
 var has_left_shooter: bool = false
 var ricochet_count: int = 0
-var has_ricocheted: bool = false  # Track if bullet bounced at least once
-var trail_line: Line2D = null  # Reference to trail for color change
+var has_ricocheted: bool = false
+var _trail_timer: float = 0.0
+var _bat_exclude: Object = null
+var _bat_exclude_timer: float = 0.0
+
+static var _trail_scr: GDScript = null
 
 @onready var impact_sound = $ImpactSound if has_node("ImpactSound") else null
 
 func _ready():
+	add_to_group("projectiles")
 	set_collision_mask_value(1, true)
 	set_collision_layer_value(2, true)
 
-	# Add trail effect
-	if trail_enabled:
-		trail_line = Line2D.new()
-		trail_line.width = trail_width
-		trail_line.default_color = trail_color
-		trail_line.add_point(Vector2.ZERO)
-		trail_line.add_point(Vector2(-trail_length, 0))
-		add_child(trail_line)
+	# Lazy-init the shared circle script
+	if trail_enabled and not _trail_scr:
+		_trail_scr = GDScript.new()
+		_trail_scr.source_code = """
+extends Node2D
+var col: Color = Color.WHITE
+var alpha: float = 0.55
+var radius: float = 5.0
+func _process(delta: float) -> void:
+\talpha -= delta * 2.8
+\tif alpha <= 0.0:
+\t\tqueue_free()
+\tqueue_redraw()
+func _draw() -> void:
+\tdraw_circle(Vector2.ZERO, radius, Color(col.r, col.g, col.b, alpha))
+\tdraw_arc(Vector2.ZERO, radius * 1.5, 0.0, TAU, 20, Color(col.r, col.g, col.b, alpha * 0.35), 1.2)
+"""
+		_trail_scr.reload()
 	
 	await get_tree().create_timer(lifetime).timeout
 	if is_instance_valid(self):
+		if explode_on_death:
+			_spawn_shotgun_explosion()
 		queue_free()
 
 func _draw():
 	var current_color = _ricochet_color() if has_ricocheted else bullet_color
-	
-	draw_rect(Rect2(-bullet_length/2, -bullet_width/2, bullet_length, bullet_width), current_color)
-	draw_rect(Rect2(-bullet_length/2, -bullet_width/4, bullet_length, bullet_width/2), Color.WHITE)
-	var tip_points = PackedVector2Array([
-		Vector2(bullet_length/2, 0),
-		Vector2(bullet_length/2 - 5, -bullet_width/2),
-		Vector2(bullet_length/2 - 5, bullet_width/2)
+
+	# Outer triangle — tapers from wide back to sharp tip at front
+	var pts := PackedVector2Array([
+		Vector2( bullet_length / 2.0,  0.0),
+		Vector2(-bullet_length / 2.0, -bullet_width / 2.0),
+		Vector2(-bullet_length / 2.0,  bullet_width / 2.0),
 	])
-	draw_colored_polygon(tip_points, Color.WHITE)
+	draw_colored_polygon(pts, current_color)
+
+	# Bright inner highlight
+	var inner := PackedVector2Array([
+		Vector2( bullet_length / 2.0,  0.0),
+		Vector2(-bullet_length / 6.0, -bullet_width / 4.0),
+		Vector2(-bullet_length / 6.0,  bullet_width / 4.0),
+	])
+	draw_colored_polygon(inner, Color(1.0, 1.0, 1.0, 0.6))
+
+func _get_trail_color() -> Color:
+	var c := _ricochet_color() if has_ricocheted else bullet_color
+	return Color(c.r, c.g, c.b, 0.55)
+
+func _spawn_trail_circle() -> void:
+	if not _trail_scr or not is_instance_valid(get_tree()):
+		return
+	var node := Node2D.new()
+	node.global_position = global_position
+	node.set_script(_trail_scr)
+	node.set("col", _get_trail_color())
+	get_tree().root.add_child(node)
 
 func _physics_process(delta):
+	if trail_enabled:
+		_trail_timer -= delta
+		if _trail_timer <= 0.0:
+			_trail_timer = 0.03
+			_spawn_trail_circle()
+
 	# Track when bullet has cleared the shooter
 	if shooter and not has_left_shooter:
 		if global_position.distance_to(shooter.global_position) > 50:
@@ -64,14 +113,25 @@ func _physics_process(delta):
 
 	var motion = direction * speed * delta
 
+	if _bat_exclude_timer > 0.0:
+		_bat_exclude_timer -= delta
+	else:
+		_bat_exclude = null
+
 	var space_state = get_world_2d().direct_space_state
 	var query = PhysicsRayQueryParameters2D.create(
 		global_position,
 		global_position + motion
 	)
-	query.collide_with_areas = false
+	query.collide_with_areas = true
 	query.collide_with_bodies = true
-	query.exclude = [shooter] if shooter and not has_left_shooter else []
+	query.collision_mask = 0xFFFFFFFF & ~2  # all layers except layer 2 (other projectiles)
+	var _excl: Array = []
+	if shooter and not has_left_shooter:
+		_excl.append(shooter)
+	if _bat_exclude:
+		_excl.append(_bat_exclude)
+	query.exclude = _excl
 
 	var result = space_state.intersect_ray(query)
 
@@ -80,6 +140,34 @@ func _physics_process(delta):
 		_handle_hit(result.collider, result.normal)
 	else:
 		position += motion
+
+func _spawn_shotgun_explosion() -> void:
+	var exp_color := _ricochet_color() if has_ricocheted else Color(1.0, 0.65, 0.1)
+	spawn_impact_effect(global_position, exp_color)
+	var ring := Node2D.new()
+	ring.global_position = global_position
+	var s := GDScript.new()
+	s.source_code = """
+extends Node2D
+var radius: float = 4.0
+var alpha: float = 0.85
+var color: Color = Color(1.0, 0.55, 0.1)
+func _process(delta):
+\tradius += 160 * delta
+\talpha -= 3.8 * delta
+\tif alpha <= 0: queue_free()
+\tqueue_redraw()
+func _draw():
+\tvar c: Color = color; c.a = alpha
+\tdraw_arc(Vector2.ZERO, radius, 0, TAU, 24, c, 3.5)
+\tvar c2: Color = color; c2.a = alpha * 0.35
+\tdraw_circle(Vector2.ZERO, radius * 0.45, c2)
+"""
+	s.reload()
+	ring.set_script(s)
+	ring.set("color", exp_color)
+	get_tree().root.add_child(ring)
+
 
 func spawn_impact_effect(at_position: Vector2, impact_color: Color = Color.WHITE):
 	if not show_impact_effects:
@@ -94,10 +182,10 @@ func spawn_impact_effect(at_position: Vector2, impact_color: Color = Color.WHITE
 	impact_script.source_code = """
 extends Node2D
 
-var radius = 5.0
-var max_radius = 20.0
-var alpha = 1.0
-var color = Color.WHITE
+var radius: float = 5.0
+var max_radius: float = 20.0
+var alpha: float = 1.0
+var color: Color = Color.WHITE
 
 func _process(delta):
 	radius += 80 * delta
@@ -107,7 +195,7 @@ func _process(delta):
 	queue_redraw()
 
 func _draw():
-	var c = color
+	var c: Color = color
 	c.a = alpha
 	draw_circle(Vector2.ZERO, radius, c)
 	if alpha > 0.5:
@@ -135,6 +223,14 @@ func play_impact_sound_effect():
 	# Auto-delete sound after it finishes
 	impact_sound.finished.connect(func(): impact_sound.queue_free())
 
+func _play_ricochet_sound() -> void:
+	var p := AudioStreamPlayer.new()
+	p.stream = _RICOCHET_SFX[randi() % _RICOCHET_SFX.size()]
+	p.pitch_scale = randf_range(0.9, 1.1)
+	get_tree().root.add_child(p)
+	p.play()
+	p.finished.connect(p.queue_free)
+
 func _ricochet_color() -> Color:
 	match ricochet_count:
 		1: return Color.GREEN
@@ -152,9 +248,6 @@ func _damage_multiplier() -> float:
 
 func _apply_ricochet_visuals() -> void:
 	has_ricocheted = true
-	var c := _ricochet_color()
-	if trail_line:
-		trail_line.default_color = c
 	queue_redraw()
 
 
@@ -165,7 +258,7 @@ func _handle_hit(body: Node, normal: Vector2):
 		if is_wall:
 			if body.has_method("on_bullet_impact"):
 				body.on_bullet_impact(global_position)
-			play_impact_sound_effect()
+			_play_ricochet_sound()
 			spawn_impact_effect(global_position, _ricochet_color() if has_ricocheted else Color.YELLOW)
 
 			if body.is_in_group("shield"):
@@ -184,7 +277,7 @@ func _handle_hit(body: Node, normal: Vector2):
 			return
 
 	# Enemy hit
-	if body.is_in_group("enemies"):
+	if body.is_in_group("enemies") or body.is_in_group("enemy_hitbox"):
 		if has_ricocheted:
 			spawn_impact_effect(global_position, Color.RED)
 			play_impact_sound_effect()
@@ -193,6 +286,10 @@ func _handle_hit(body: Node, normal: Vector2):
 			queue_free()
 		else:
 			# Non-ricocheted bullet: enemy bats it back toward the player
+			if body.has_method("trigger_attack_anim"):
+				body.trigger_attack_anim()
+			_bat_exclude = body
+			_bat_exclude_timer = 0.3
 			var player_node = get_tree().get_first_node_in_group("player")
 			if player_node:
 				direction = (player_node.global_position - global_position).normalized()

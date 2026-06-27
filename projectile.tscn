@@ -14,12 +14,13 @@ collision_layer = 2
 script = ExtResource("1_a85iw")
 speed = 1500.0
 bullet_color = Color(0.9035309, 0.98697203, 0.89119524, 1)
-trail_length = 100.0
-trail_width = 5.0
+trail_length = 120.0
+trail_width = 7.0
 trail_color = Color(0.86496246, 0.99557155, 0.9257736, 1)
 ricochet_speed_loss = 1.1
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
+visible = false
 position = Vector2(-0.78169227, 1.3858507)
 rotation = 1.5707964
 scale = Vector2(0.12048477, 0.22489145)
